@@ -1,0 +1,47 @@
+"use client";
+
+import React, { Suspense, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useEntityStore } from "@/store/slices/useEntityStore";
+import { columns } from "../entities/_components/columns";
+import { PageSkeleton } from '@/components/page-skeleton';
+import { DataTableSkeleton } from '@/components/data-table-skeleton';
+
+const EntityDataTable = dynamic(
+  () => import('../entities/_components/entity-data-table').then(m => m.EntityDataTable),
+  { ssr: false, loading: () => <DataTableSkeleton columns={columns} /> }
+);
+
+function CustomerList() {
+    const { entities, loading, fetchEntities } = useEntityStore();
+
+    useEffect(() => {
+        const unsub = fetchEntities('');
+        return () => { if(unsub) unsub(); };
+    }, [fetchEntities]);
+
+    const customerData = useMemo(() => entities.filter(e => e.entityType === 'customer'), [entities]);
+
+    if (loading && customerData.length === 0) return <DataTableSkeleton columns={columns} />;
+
+    return <EntityDataTable columns={columns} data={customerData} entityType="Customer" />;
+}
+
+export default function CustomersPage() {
+    return (
+        <div className="space-y-6 animate-on-scroll">
+            <Card className="interactive-card">
+                <CardHeader>
+                    <CardTitle>Customer Management</CardTitle>
+                    <CardDescription>View and manage all customer entities from your clients.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Suspense fallback={<PageSkeleton />}>
+                        <CustomerList />
+                    </Suspense>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}

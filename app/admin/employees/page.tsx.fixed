@@ -1,0 +1,8 @@
+function EmployeeList() {
+    const { entities, loading, fetchEntities } = useEntityStore();
+
+    useEffect(() => {
+        fetchEntities();
+    }, [fetchEntities]);
+
+    const employeeData = useMemo(() => entities.filter(e => e.entityType === 'employee'), [entities]);

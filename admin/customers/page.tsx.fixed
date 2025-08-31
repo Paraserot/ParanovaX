@@ -1,0 +1,8 @@
+function CustomerList() {
+    const { entities, loading, fetchEntities } = useEntityStore();
+
+    useEffect(() => {
+        fetchEntities();
+    }, [fetchEntities]);
+
+    const customerData = useMemo(() => entities.filter(e => e.entityType === 'customer'), [entities]);
