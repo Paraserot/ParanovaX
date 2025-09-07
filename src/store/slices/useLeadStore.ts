@@ -2,16 +2,15 @@
 "use client";
 
 import { create } from 'zustand';
-import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, orderBy, Timestamp, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebaseClient';
 import { Lead } from '@/services/leads';
 
 interface LeadStore {
   leads: Lead[];
   loading: boolean;
   fetched: boolean;
-  setLeads: (leads: Lead[]) => void;
-  fetchLeads: (force?: boolean) => () => void;
+  fetchLeads: (force?: boolean) => Promise<void>;
   forceRefresh: () => void;
 }
 
@@ -29,32 +28,22 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
   leads: [],
   loading: false,
   fetched: false,
-  
-  setLeads: (leads) => {
-    set({ leads, loading: false, fetched: true });
-  },
-
-  fetchLeads: (force = false) => {
-    if (!force && get().fetched) return () => {};
+  fetchLeads: async (force = false) => {
+     if (!force && get().fetched) return;
 
     set({ loading: true });
-    
-    const q = query(collection(db, "leads"), orderBy("createdAt", "desc"));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const newLeads = snapshot.docs.map(toSerializableLead);
-      set({ leads: newLeads, loading: false, fetched: true });
-    }, (error) => {
-      console.error("Failed to fetch leads:", error);
-      set({ loading: false });
-    });
-    
-    return unsubscribe;
+    try {
+        const q = query(collection(db, "leads"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        const newLeads = snapshot.docs.map(toSerializableLead);
+        set({ leads: newLeads, loading: false, fetched: true });
+    } catch (error) {
+        console.error("Failed to fetch leads:", error);
+        set({ loading: false });
+    }
   },
-  
   forceRefresh: () => {
+    set({fetched: false});
     get().fetchLeads(true);
   }
 }));
-
-    

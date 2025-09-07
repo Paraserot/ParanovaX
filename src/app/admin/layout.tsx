@@ -1,71 +1,23 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { MainNav } from "@/components/main-nav";
-import { UserNav } from "@/components/user-nav";
-import { 
-    SidebarProvider, 
-    Sidebar,
-    SidebarHeader,
-    SidebarContent,
-    SidebarFooter,
-} from "@/components/ui/sidebar";
-import { useFcm } from "@/hooks/useFcm";
-import { KbdProvider } from "@/hooks/use-kbd";
-import { SidebarLogo } from '@/components/sidebar-logo';
-import { FloatingActionButton } from '@/components/floating-action-button';
-import { ForceUpdateProvider } from '@/components/force-update-provider';
-import { GlobalLoader } from '@/components/global-loader';
-import { Preloader } from '@/components/preloader';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { PageSkeleton } from '@/components/page-skeleton';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useUserStore } from '@/store/slices/useUserStore';
 import { useRoleStore } from '@/store/slices/useRoleStore';
 
-function AdminLayoutContent({ children }: { children: React.ReactNode }) {
-    useFcm();
-    
-    return (
-        <KbdProvider>
-            <ForceUpdateProvider>
-                <SidebarProvider>
-                    <div className="relative">
-                        <Sidebar>
-                            <SidebarHeader>
-                                <SidebarLogo />
-                            </SidebarHeader>
-                            <SidebarContent>
-                                <MainNav />
-                            </SidebarContent>
-                            <SidebarFooter>
-                                <UserNav />
-                            </SidebarFooter>
-                        </Sidebar>
-                        <main>
-                            <div className="p-4 md:p-6 min-h-screen">
-                                {children}
-                            </div>
-                        </main>
-                        <FloatingActionButton />
-                        <GlobalLoader />
-                        <Preloader />
-                    </div>
-                </SidebarProvider>
-            </ForceUpdateProvider>
-        </KbdProvider>
-    );
-}
+// Lazy loaded components
+const AdminLayoutContent = lazy(() => import('@/components/admin-layout-content'));
+
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [isVerified, setIsVerified] = useState(false);
-    const { fetchUser } = useUserStore();
+    const { fetchUser, setAdminUser } = useUserStore();
     const { fetchRole } = useRoleStore();
 
     useEffect(() => {
@@ -77,29 +29,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
 
         const checkUser = async () => {
-            try {
-                const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-                if (adminDoc.exists()) {
-                    const adminData = adminDoc.data();
-                    fetchUser(user.uid);
-                    if (adminData.role) {
-                        fetchRole(adminData.role);
-                    }
-                    setIsVerified(true);
-                } else {
-                    router.replace('/client/dashboard');
+            // This function now correctly fetches user and role data,
+            // then sets verification status.
+            const adminData = await fetchUser(user.uid);
+            if (adminData) {
+                 if (adminData.role) {
+                    await fetchRole(adminData.role);
                 }
-            } catch(e) {
-                 console.error("Failed to verify admin user:", e);
-                 router.replace(`/login?redirect=${pathname}`);
+                setIsVerified(true);
+            } else {
+                 // If not an admin, clear adminUser from store and redirect.
+                 setAdminUser(null);
+                 router.replace('/client/dashboard');
             }
         };
+
         checkUser();
-    }, [user, loading, router, pathname, fetchUser, fetchRole]);
+    }, [user, loading, router, pathname, fetchUser, fetchRole, setAdminUser]);
 
     if (loading || !isVerified) {
         return <PageSkeleton />;
     }
 
-    return <AdminLayoutContent>{children}</AdminLayoutContent>;
+    return (
+        <Suspense fallback={<PageSkeleton />}>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </Suspense>
+    );
 }

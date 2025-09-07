@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { PushNotification } from '@/services/pushNotifications';
 
 interface PushNotificationStore {
@@ -36,13 +36,10 @@ export const usePushNotificationStore = create<PushNotificationStore>((set, get)
       const snapshot = await getDocs(q);
       const newNotifications = snapshot.docs.map(toSerializablePushNotification);
       
-      set({ pushNotifications: newNotifications, fetched: true });
+      set({ pushNotifications: newNotifications, fetched: true, loading: false });
     } catch (error) {
       console.error("Failed to fetch push notifications:", error);
-    } finally {
       set({ loading: false });
     }
   },
 }));
-
-    

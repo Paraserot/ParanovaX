@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Ticket } from '@/services/tickets';
 
 interface TicketStore {
@@ -11,7 +11,7 @@ interface TicketStore {
   loading: boolean;
   fetched: boolean;
   fetchTickets: (force?: boolean) => Promise<void>;
-  forceRefresh: () => Promise<void>;
+  forceRefresh: () => void;
 }
 
 const toSerializableTicket = (docSnap: any): Ticket => {
@@ -38,24 +38,19 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   fetched: false,
   fetchTickets: async (force = false) => {
     if (!force && get().fetched) return;
-
     set({ loading: true });
     try {
       const q = query(collection(db, "tickets"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       const newTickets = snapshot.docs.map(toSerializableTicket);
-
-      set({ tickets: newTickets, fetched: true });
+      set({ tickets: newTickets, loading: false, fetched: true });
     } catch (error) {
       console.error("Failed to fetch tickets:", error);
-    } finally {
       set({ loading: false });
     }
   },
-  forceRefresh: async () => {
+  forceRefresh: () => {
     set({ fetched: false });
-    await get().fetchTickets(true);
+    get().fetchTickets(true);
   }
 }));
-
-    

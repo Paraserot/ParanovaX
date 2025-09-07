@@ -1,26 +1,23 @@
 
 // This file must be in the public directory
 
+// Scripts for Firebase products are imported in the HTML file.
+// For a production app, you should use a bundler like webpack.
 importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js");
 
-// Initialize the Firebase app in the service worker by passing in the
-// messagingSenderId.
 const firebaseConfig = {
-    apiKey: "AIzaSyBBz1RrkY2XrxW9fSmgvJsAj6ZjKGoUwXw",
-    authDomain: "advocate-case-manager.firebaseapp.com",
-    databaseURL: "https://advocate-case-manager-default-rtdb.firebaseio.com",
-    projectId: "advocate-case-manager",
-    storageBucket: "advocate-case-manager.appspot.com",
-    messagingSenderId: "74290185621",
-    appId: "1:74290185621:web:ea4eea551f2f12b7a8e29c",
-    measurementId: "G-4QPJ5QVQ9G"
+    apiKey: "YOUR_API_KEY", // Replace with your actual config
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
 
-// Retrieve an instance of Firebase Messaging so that it can handle background
-// messages.
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
@@ -29,10 +26,10 @@ messaging.onBackgroundMessage((payload) => {
     payload
   );
   
-  const notificationTitle = payload.notification.title;
+  const notificationTitle = payload.notification.title || 'New Message';
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: payload.notification.image || "/favicon.ico",
+    body: payload.notification.body || 'You have a new message.',
+    icon: payload.notification.image || "/icons/icon-192x192.png",
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);

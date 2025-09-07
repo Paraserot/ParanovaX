@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Payment } from '@/services/payments';
 
 interface PaymentStore {
@@ -44,4 +44,3 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     }
   },
 }));
-

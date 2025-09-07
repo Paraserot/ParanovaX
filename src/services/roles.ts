@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, getDocs, doc, setDoc, query, orderBy, Timestamp, addDoc, updateDoc, deleteDoc, writeBatch, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Permission, Module, defaultPermissions } from '@/lib/permissions';
 
 export type Permissions = {
@@ -66,7 +66,6 @@ export async function deleteRole(id: string) {
 export async function saveRolePermissions(roleId: string, permissions: Permissions) {
     try {
         const roleDocRef = doc(db, 'roles', roleId);
-        // Use updateDoc to only modify the permissions field, not the whole document.
         await updateDoc(roleDocRef, { permissions });
     } catch (error) {
         console.error("Error saving role permissions: ", error);

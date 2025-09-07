@@ -12,22 +12,19 @@ export const useFcm = () => {
     const { adminUser } = useAuth();
 
     useEffect(() => {
-        if (typeof window === 'undefined' || !messaging || !adminUser) return;
-        
-        // This hook now only listens for incoming messages.
-        // Permission is requested manually from the settings page.
-        
-        const unsubscribe = onMessage(messaging, (payload) => {
-            console.log('Message received. ', payload);
-            toast({
-                title: payload.notification?.title || "New Notification",
-                description: payload.notification?.body,
+        if (typeof window !== 'undefined' && 'Notification' in window && messaging && adminUser) {
+             const unsubscribe = onMessage(messaging, (payload) => {
+                console.log('Message received. ', payload);
+                toast({
+                    title: payload.notification?.title || "New Notification",
+                    description: payload.notification?.body,
+                });
             });
-        });
 
-        return () => {
-            unsubscribe();
-        };
+            return () => {
+                unsubscribe();
+            };
+        }
     }, [adminUser, toast]);
 
     return null; 

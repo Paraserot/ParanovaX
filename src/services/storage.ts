@@ -2,7 +2,7 @@
 "use client";
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+import { storage } from "@/lib/firebaseClient";
 
 export async function uploadImage(file: File, path: string) {
   try {

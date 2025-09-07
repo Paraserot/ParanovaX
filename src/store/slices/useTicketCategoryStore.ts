@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { TicketCategory } from '@/services/ticket-categories';
 
 interface TicketCategoryStore {
@@ -46,5 +46,3 @@ export const useTicketCategoryStore = create<TicketCategoryStore>((set, get) => 
     }
   },
 }));
-
-    

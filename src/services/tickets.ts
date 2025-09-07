@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Client } from './clients';
 import { TicketCategory, getTicketCategories } from './ticket-categories';
 import { AdminUser } from './users';

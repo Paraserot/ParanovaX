@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, Suspense } from 'react';
@@ -7,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { columns } from './_components/columns';
 import { DataTableSkeleton } from '@/components/data-table-skeleton';
 
-const DataTable = dynamic(() => import('./_components/data-table'), { ssr: false, loading: () => <DataTableSkeleton columns={columns} /> });
+const DataTable = dynamic(() => import('./_components/data-table').then(m => m.DataTable), { ssr: false, loading: () => <DataTableSkeleton columns={columns} /> });
 
 function NotificationList() {
     const { pushNotifications, loading, fetchPushNotifications } = usePushNotificationStore();

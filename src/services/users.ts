@@ -23,7 +23,7 @@ import {
   AuthErrorCodes,
   updatePassword,
 } from 'firebase/auth';
-import { db, app, auth as firebaseAuth } from '@/lib/firebase';
+import { db, app } from '@/lib/firebaseClient';
 import { Role } from './roles';
 
 export type AdminUser = {

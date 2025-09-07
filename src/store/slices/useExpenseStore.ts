@@ -2,46 +2,40 @@
 "use client";
 
 import { create } from 'zustand';
-import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebaseClient';
 import { Expense, toSerializableExpense } from '@/services/expenses';
 
 interface ExpenseStore {
   expenses: Expense[];
   loading: boolean;
   fetched: boolean;
-  fetchExpenses: (force?: boolean) => () => void;
+  fetchExpenses: (force?: boolean) => Promise<void>;
   forceRefresh: () => void;
 }
-
-let unsubscribe: (() => void) | null = null;
 
 export const useExpenseStore = create<ExpenseStore>((set, get) => ({
   expenses: [],
   loading: false,
   fetched: false,
-  fetchExpenses: (force = false) => {
-    if (!force && (get().fetched || get().loading)) {
-      return unsubscribe || (() => {});
+  fetchExpenses: async (force = false) => {
+    if (!force && get().fetched) {
+        return;
     }
 
     set({ loading: true });
-
-    const q = query(collection(db, "expenses"), orderBy("expenseDate", "desc"));
-    
-    unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(toSerializableExpense);
-      set({ expenses: data, loading: false, fetched: true });
-    }, (error) => {
-      console.error("Failed to subscribe to expense updates:", error);
-      set({ loading: false });
-    });
-
-    return unsubscribe;
+    try {
+        const q = query(collection(db, "expenses"), orderBy("expenseDate", "desc"));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(toSerializableExpense);
+        set({ expenses: data, loading: false, fetched: true });
+    } catch(error) {
+        console.error("Failed to fetch expenses:", error);
+        set({ loading: false });
+    }
   },
   forceRefresh: () => {
+    set({ fetched: false });
     get().fetchExpenses(true);
   }
 }));
-
-    

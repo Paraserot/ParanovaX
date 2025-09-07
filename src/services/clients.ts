@@ -2,8 +2,8 @@
 "use client";
 
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { db } from '@/lib/firebaseClient';
 
 export type Client = {
   id?: string;
@@ -19,10 +19,10 @@ export type Client = {
   portalAccess: boolean;
   createdBy: string;
   remarks?: string;
-  revenue?: number; // Formerly totalRevenue
-  source?: string; // New field
-  visitCount?: number; // New field - for future use
-  lastVisit?: string; // New field - for future use
+  revenue?: number;
+  source?: string;
+  visitCount?: number;
+  lastVisit?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -32,7 +32,6 @@ export type NewClientData = Omit<Client, 'id' | 'createdAt' | 'updatedAt'> & { p
 export async function addClient(clientData: NewClientData) {
   const { password, ...clientInfo } = clientData;
 
-  // Sanitize clientInfo to remove undefined values
   const sanitizedClientInfo: { [key: string]: any } = { ...clientInfo };
   Object.keys(sanitizedClientInfo).forEach(key => {
     if (sanitizedClientInfo[key] === undefined) {

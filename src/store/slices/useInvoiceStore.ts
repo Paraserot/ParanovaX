@@ -3,14 +3,13 @@
 
 import { create } from 'zustand';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Invoice } from '@/services/invoices';
 
 interface InvoiceStore {
   invoices: Invoice[];
   loading: boolean;
   fetched: boolean;
-  setInvoices: (invoices: Invoice[]) => void;
   fetchInvoices: (force?: boolean) => Promise<void>;
   forceRefresh: () => Promise<void>;
 }
@@ -30,9 +29,6 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
   invoices: [],
   loading: false,
   fetched: false,
-  setInvoices: (invoices) => {
-    set({ invoices, loading: false, fetched: true });
-  },
   fetchInvoices: async (force = false) => {
     if (!force && get().fetched) return;
 
@@ -42,10 +38,9 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
       const snapshot = await getDocs(q);
       const newInvoices = snapshot.docs.map(toSerializableInvoice);
       
-      set({ invoices: newInvoices, fetched: true });
+      set({ invoices: newInvoices, fetched: true, loading: false });
     } catch (error) {
       console.error("Failed to fetch invoices:", error);
-    } finally {
       set({ loading: false });
     }
   },
@@ -54,5 +49,3 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
     await get().fetchInvoices(true);
   }
 }));
-
-    

@@ -3,18 +3,18 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { StatCards, StatCardData } from './stat-cards';
+import { StatCards, StatCardData } from '@/components/stat-cards';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClientTypeStore } from '@/store/slices/useClientTypeStore';
 import { Button } from '@/components/ui/button';
 import { Wand2 } from 'lucide-react';
 import { PageSkeleton } from '@/components/page-skeleton';
-import ClientListDialog from './client-list-dialog';
-import { AIAssistantDialog } from './ai-assistant-dialog';
-import RevenueChartComponent from './revenue-chart';
-import ExpenseChartComponent from './expense-chart';
-import ClientChartsCard from './client-charts-card';
-import LoginAnalytics from './login-analytics';
+import ClientListDialog from '@/components/client-list-dialog';
+import { AIAssistantDialog } from '@/components/ai-assistant-dialog';
+import RevenueChartComponent from '@/components/revenue-chart';
+import ExpenseChartComponent from '@/components/expense-chart';
+import ClientChartsCard from '@/components/client-charts-card';
+import LoginAnalytics from '@/components/login-analytics';
 
 
 export default function DashboardPageContent() {

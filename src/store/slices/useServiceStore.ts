@@ -2,16 +2,15 @@
 "use client";
 
 import { create } from 'zustand';
-import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, orderBy, Timestamp, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebaseClient';
 import { Service } from '@/services/services';
 
 interface ServiceStore {
   services: Service[];
   loading: boolean;
   fetched: boolean;
-  setServices: (services: Service[]) => void;
-  fetchServices: (force?: boolean) => () => void;
+  fetchServices: (force?: boolean) => Promise<void>;
   forceRefresh: () => void;
 }
 
@@ -28,32 +27,22 @@ export const useServiceStore = create<ServiceStore>((set, get) => ({
   services: [],
   loading: false,
   fetched: false,
-
-  setServices: (services) => {
-    set({ services, loading: false, fetched: true });
-  },
-
-  fetchServices: (force = false) => {
-    if (!force && get().fetched) return () => {};
+  fetchServices: async (force = false) => {
+    if (!force && get().fetched) return;
     
     set({ loading: true });
-
-    const q = query(collection(db, "services"), orderBy("name"));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const newServices = snapshot.docs.map(toSerializableService);
-      set({ services: newServices, loading: false, fetched: true });
-    }, (error) => {
+    try {
+        const q = query(collection(db, "services"), orderBy("name"));
+        const snapshot = await getDocs(q);
+        const newServices = snapshot.docs.map(toSerializableService);
+        set({ services: newServices, loading: false, fetched: true });
+    } catch(error) {
       console.error("Failed to fetch services:", error);
       set({ loading: false });
-    });
-
-    return unsubscribe;
+    }
   },
-
   forceRefresh: () => {
+    set({fetched: false});
     get().fetchServices(true);
   }
 }));
-
-    

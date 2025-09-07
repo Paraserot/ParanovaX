@@ -4,13 +4,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandShortcut } from '@/components/ui/command';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableRow, TableHead, TableHeader } from '@/components/ui/table';
 import { adminMenuItems } from '@/components/main-nav';
-import { useClientStore } from '@/store/slices/useClientStore';
-import { useLeadStore } from '@/store/slices/useLeadStore';
 import { useTheme } from 'next-themes';
 
 type KbdContextType = {
@@ -98,7 +95,6 @@ function KbdDialog({ open, setOpen }: { open: boolean, setOpen: (open: boolean) 
 
 const gotoShortcuts = adminMenuItems.reduce((acc, item) => {
     const key = item.label.charAt(0).toLowerCase();
-    // Avoid overwriting existing keys, find a unique one if needed
     if (!acc[key]) {
         acc[key] = { path: item.href, label: item.label, icon: item.icon };
     }
@@ -112,39 +108,30 @@ export function KbdProvider({ children }: { children: ReactNode }) {
   const [gotoActive, setGotoActive] = useState(false);
   const gotoActiveRef = useRef(gotoActive);
   const router = useRouter();
-  const { clients, fetchClients } = useClientStore();
-  const { leads, fetchLeads } = useLeadStore();
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     gotoActiveRef.current = gotoActive;
   }, [gotoActive]);
 
-  useEffect(() => {
-    if (open) {
-        fetchClients();
-        fetchLeads();
-    }
-  }, [open, fetchClients, fetchLeads]);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback( async (e: KeyboardEvent) => {
+    const { auth } = await import("@/lib/firebaseClient");
+    
     const target = e.target as HTMLElement;
     const isEditing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
 
     if (e.key === 'Escape') {
         setGotoActive(false);
-        // Dialogs/menus will handle their own Esc closing
         return;
     }
     
-    // Handle "Go To" navigation first
     if (gotoActiveRef.current) {
         if (gotoShortcuts[e.key.toLowerCase()]) {
             e.preventDefault();
             router.push(gotoShortcuts[e.key.toLowerCase()].path);
         }
         setGotoActive(false);
-        return; // Consume the key press and do nothing else
+        return; 
     }
     
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
@@ -219,7 +206,7 @@ export function KbdProvider({ children }: { children: ReactNode }) {
     <KbdContext.Provider value={{ setOpen: setHelpOpen }}>
       {children}
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Search for clients, leads, actions..." />
+        <CommandInput placeholder="Search for actions or navigate..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Navigation">
@@ -231,31 +218,13 @@ export function KbdProvider({ children }: { children: ReactNode }) {
                 </CommandItem>
              ))}
           </CommandGroup>
-          {clients.length > 0 && (
-             <CommandGroup heading="Clients">
-                {clients.slice(0, 3).map(client => (
-                    <CommandItem key={client.id} onSelect={() => runCommand(() => router.push(`/admin/clients?id=${client.id}`))}>
-                        {client.firmName}
-                    </CommandItem>
-                ))}
-            </CommandGroup>
-          )}
-          {leads.length > 0 && (
-            <CommandGroup heading="Leads">
-                {leads.slice(0, 3).map(lead => (
-                    <CommandItem key={lead.id} onSelect={() => runCommand(() => router.push(`/admin/leads?id=${lead.id}`))}>
-                        {lead.firstName} {lead.lastName}
-                    </CommandItem>
-                ))}
-            </CommandGroup>
-          )}
         </CommandList>
       </CommandDialog>
       <KbdDialog open={helpOpen} setOpen={setHelpOpen} />
        {gotoActive && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] bg-background/90 backdrop-blur-md p-4 rounded-lg shadow-lg border animate-in fade-in-0">
           <div className="flex items-center gap-x-6 overflow-x-auto pb-2 no-scrollbar">
-            {Object.entries(gotoShortcuts).map(([key, { label, icon: Icon }]) => (
+            {Object.entries(gotoShortcuts).map(([key, { label }]) => (
               <div key={key} className="flex flex-col items-center gap-1.5 w-16 shrink-0">
                  <kbd className="pointer-events-none inline-flex h-10 w-10 select-none items-center justify-center rounded-lg border bg-muted font-mono text-lg font-medium text-muted-foreground">{key.toUpperCase()}</kbd>
                  <span className="text-xs text-muted-foreground truncate w-full text-center">{label}</span>

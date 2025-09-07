@@ -2,8 +2,8 @@
 "use client";
 
 import { create } from 'zustand';
-import { collection, onSnapshot, query, orderBy, doc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, orderBy, doc, Timestamp, getDocs, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebaseClient';
 import { Role } from '@/services/roles';
 
 interface RoleStore {
@@ -12,8 +12,8 @@ interface RoleStore {
   rolesMap: Map<string, string>;
   loading: boolean;
   setUserRole: (role: Role | null) => void;
-  fetchRoles: () => () => void;
-  fetchRole: (roleId: string) => () => void;
+  fetchRoles: () => Promise<void>;
+  fetchRole: (roleId: string) => Promise<void>;
   getRoleById: (id: string) => Role | null;
 }
 
@@ -34,34 +34,34 @@ export const useRoleStore = create<RoleStore>((set, get) => ({
   rolesMap: new Map(),
   loading: true,
   setUserRole: (role) => set({ userRole: role }),
-  fetchRoles: () => {
-    const q = query(collection(db, "roles"), orderBy("level"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(toSerializableRole);
-      const newRolesMap = new Map(data.map(r => [r.id, r.name]));
-      set({ roles: data, rolesMap: newRolesMap });
-    }, (error) => {
-      console.error("Failed to fetch roles:", error);
-    });
-    return unsubscribe;
+  fetchRoles: async () => {
+    set({loading: true});
+    try {
+        const q = query(collection(db, "roles"), orderBy("level"));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(toSerializableRole);
+        const newRolesMap = new Map(data.map(r => [r.id, r.name]));
+        set({ roles: data, rolesMap: newRolesMap, loading: false });
+    } catch(error) {
+        console.error("Failed to fetch roles:", error);
+        set({loading: false});
+    }
   },
-  fetchRole: (roleId: string) => {
+  fetchRole: async (roleId: string) => {
     set({ loading: true });
-    const unsub = onSnapshot(doc(db, "roles", roleId), (doc) => {
-        if(doc.exists()) {
-            set({ userRole: toSerializableRole(doc), loading: false });
+    try {
+        const roleDoc = await getDoc(doc(db, "roles", roleId));
+        if(roleDoc.exists()) {
+            set({ userRole: toSerializableRole(roleDoc), loading: false });
         } else {
             set({ userRole: null, loading: false });
         }
-    }, (error) => {
-      console.error("Failed to fetch user role:", error);
-      set({ userRole: null, loading: false });
-    });
-    return unsub;
+    } catch(e) {
+         console.error("Failed to fetch user role:", e);
+         set({ userRole: null, loading: false });
+    }
   },
   getRoleById: (id: string) => {
     return get().roles.find(role => role.id === id) || null;
   }
 }));
-
-    

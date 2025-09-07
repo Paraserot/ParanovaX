@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, getDocs, query, orderBy, Timestamp, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 
 export type Expense = {
   id?: string;
@@ -19,15 +19,13 @@ const serializeTimestamp = (timestamp: any): string | null => {
     if (timestamp instanceof Timestamp) {
         return timestamp.toDate().toISOString();
     }
-    // If it's already a string (from a recent client-side creation), just return it.
     if (typeof timestamp === 'string') {
         return timestamp;
     }
-    // Fallback for other potential date-like objects
     if (timestamp.toDate && typeof timestamp.toDate === 'function') {
         return timestamp.toDate().toISOString();
     }
-    return new Date().toISOString(); // Fallback
+    return new Date().toISOString(); 
 };
 
 export const toSerializableExpense = (docSnap: any): Expense => {

@@ -2,7 +2,7 @@
 "use client";
 
 import { create } from 'zustand';
-import { collection, onSnapshot, query, orderBy, doc, Timestamp, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, doc, Timestamp, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Client } from '@/services/clients';
 
@@ -13,7 +13,7 @@ interface ClientStore {
   fetched: boolean;
   setClientUser: (client: Client | null) => void;
   fetchClients: (force?: boolean) => Promise<void>; 
-  fetchClient: (uid: string) => () => void;
+  fetchClient: (uid: string) => Promise<Client | null>;
 }
 
 const toSerializableClient = (docSnap: any): Client => {
@@ -30,15 +30,14 @@ const toSerializableClient = (docSnap: any): Client => {
 export const useClientStore = create<ClientStore>((set, get) => ({
   clientUser: null,
   clients: [],
-  loading: true,
+  loading: false,
   fetched: false,
   setClientUser: (client) => set({ clientUser: client }),
   fetchClients: async (force = false) => {
     if (!force && get().fetched) {
-        set({ loading: false });
         return;
     }
-    set({loading: true});
+    set({loading: true, fetched: false});
     try {
         const q = query(collection(db, "clients"), orderBy("firmName"));
         const snapshot = await getDocs(q);
@@ -49,19 +48,23 @@ export const useClientStore = create<ClientStore>((set, get) => ({
         set({ loading: false });
     }
   },
-  fetchClient: (uid: string) => {
+  fetchClient: async (uid: string) => {
     set({ loading: true });
-    const unsubscribe = onSnapshot(doc(db, "clients", uid), (doc) => {
-        if (doc.exists()) {
-            set({ clientUser: toSerializableClient(doc), loading: false });
+    try {
+        const clientDocRef = doc(db, "clients", uid);
+        const docSnap = await getDoc(clientDocRef);
+        if (docSnap.exists()) {
+            const clientData = toSerializableClient(docSnap);
+            set({ clientUser: clientData, loading: false });
+            return clientData;
         } else {
             set({ clientUser: null, loading: false });
+            return null;
         }
-    }, (error) => {
+    } catch (error) {
         console.error("Failed to fetch client:", error);
         set({ loading: false });
-    });
-    return unsubscribe;
+        return null;
+    }
   }
 }));
-

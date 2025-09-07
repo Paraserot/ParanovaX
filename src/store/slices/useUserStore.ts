@@ -2,8 +2,8 @@
 "use client";
 
 import { create } from 'zustand';
-import { doc, onSnapshot, collection, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { doc, onSnapshot, collection, query, orderBy, Timestamp, getDocs, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebaseClient';
 import { AdminUser } from '@/services/users';
 
 interface UserStore {
@@ -12,54 +12,56 @@ interface UserStore {
   usersMap: Map<string, string>;
   loading: boolean;
   setAdminUser: (user: AdminUser | null) => void;
-  fetchUser: (uid: string) => () => void;
-  fetchUsers: () => () => void;
+  fetchUser: (uid: string) => Promise<AdminUser | null>;
+  fetchUsers: () => Promise<void>;
 }
 
 const toSerializableUser = (docSnap: any): AdminUser => {
     const data = docSnap.data();
-    const createdAt = data.createdAt;
-    const updatedAt = data.updatedAt;
-
     return {
         id: docSnap.id,
         ...data,
-        createdAt: createdAt instanceof Timestamp ? createdAt.toDate().toISOString() : new Date().toISOString(),
-        updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate().toISOString() : new Date().toISOString(),
+        createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
+        updatedAt: (data.updatedAt as Timestamp)?.toDate().toISOString() || new Date().toISOString(),
     } as AdminUser;
 };
 
-export const useUserStore = create<UserStore>((set) => ({
+export const useUserStore = create<UserStore>((set, get) => ({
   adminUser: null,
   users: [],
   usersMap: new Map(),
   loading: true,
-  setAdminUser: (user) => set({ adminUser: user }),
-  fetchUser: (uid: string) => {
+  setAdminUser: (user) => set({ adminUser: user, loading: false }),
+  fetchUser: async (uid: string): Promise<AdminUser | null> => {
     set({ loading: true });
-    const unsub = onSnapshot(doc(db, "admins", uid), (doc) => {
-      if (doc.exists()) {
-        set({ adminUser: toSerializableUser(doc), loading: false });
-      } else {
-        set({ adminUser: null, loading: false });
-      }
-    }, (error) => {
-      console.error("Failed to fetch user:", error);
-      set({ loading: false });
-    });
-    return unsub;
+    try {
+        const userDocRef = doc(db, "admins", uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+            const userData = toSerializableUser(docSnap);
+            set({ adminUser: userData, loading: false });
+            return userData;
+        } else {
+             set({ adminUser: null, loading: false });
+            return null;
+        }
+    } catch(e) {
+        console.error("Failed to fetch user:", e);
+        set({ loading: false });
+        return null;
+    }
   },
-  fetchUsers: () => {
-    const q = query(collection(db, "admins"), orderBy("firstName"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersData = snapshot.docs.map(toSerializableUser);
-      const newUsersMap = new Map(usersData.map(u => [u.id!, `${u.firstName} ${u.lastName}`]));
-      set({ users: usersData, usersMap: newUsersMap });
-    }, (error) => {
+  fetchUsers: async () => {
+    set({loading: true});
+    try {
+        const q = query(collection(db, "admins"), orderBy("firstName"));
+        const snapshot = await getDocs(q);
+        const usersData = snapshot.docs.map(toSerializableUser);
+        const newUsersMap = new Map(usersData.map(u => [u.id!, `${u.firstName} ${u.lastName}`]));
+        set({ users: usersData, usersMap: newUsersMap, loading: false });
+    } catch(error) {
         console.error("Failed to fetch all users:", error);
-    });
-    return unsubscribe;
+        set({loading: false});
+    }
   }
 }));
-
-    

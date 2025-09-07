@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, where, getDoc, setDoc, runTransaction } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import type { Client } from './clients';
 
 export interface InvoiceItem {
@@ -17,10 +17,10 @@ export type Invoice = {
   id?: string;
   invoiceNumber: string;
   client: Pick<Client, 'id' | 'firmName' | 'firstName' | 'lastName'>;
-  employeeId?: string; // The staff who made the sale
+  employeeId?: string; 
   items: InvoiceItem[];
   subTotal: number;
-  tax: number; // This is now the tax rate
+  tax: number; 
   total: number;
   invoiceDate: string;
   dueDate: string;
@@ -71,10 +71,10 @@ export async function updateInvoice(id: string, updates: Partial<Invoice>) {
 
   if (updates.invoiceDate) dataToUpdate.invoiceDate = new Date(updates.invoiceDate);
   if (updates.dueDate) dataToUpdate.dueDate = new Date(updates.dueDate);
-  // Ensure the client object only contains the ID, not the full object if it was passed accidentally
+  
   if(updates.client) dataToUpdate.client = { id: updates.client.id, firmName: updates.client.firmName, firstName: updates.client.firstName, lastName: updates.client.lastName };
 
-  delete dataToUpdate.id; // Don't try to update the ID
+  delete dataToUpdate.id; 
   
   await updateDoc(invoiceDoc, dataToUpdate);
 }

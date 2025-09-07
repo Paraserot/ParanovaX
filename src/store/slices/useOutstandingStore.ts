@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Outstanding } from '@/services/outstanding';
 
 interface OutstandingStore {
@@ -36,13 +36,10 @@ export const useOutstandingStore = create<OutstandingStore>((set, get) => ({
       const snapshot = await getDocs(q);
       const newOutstanding = snapshot.docs.map(toSerializableOutstanding);
       
-      set({ outstanding: newOutstanding, fetched: true });
+      set({ outstanding: newOutstanding, fetched: true, loading: false });
     } catch (error) {
       console.error("Failed to fetch outstanding:", error);
-    } finally {
       set({ loading: false });
     }
   },
 }));
-
-    

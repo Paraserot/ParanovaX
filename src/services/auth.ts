@@ -2,7 +2,7 @@
 "use client";
 
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebaseClient";
 
 export async function sendPasswordReset(email: string): Promise<void> {
     try {
