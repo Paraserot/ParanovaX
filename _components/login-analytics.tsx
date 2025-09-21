@@ -11,7 +11,7 @@ import { ChartContainer } from "@/components/ui/chart";
 import { CustomLoader } from "@/components/ui/custom-loader";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 
 export type LoginRecord = {
     email: string;

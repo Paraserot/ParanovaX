@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 export type Client = {

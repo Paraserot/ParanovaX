@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { collection, onSnapshot, query, orderBy, doc, Timestamp, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Client } from '@/services/clients';
 
 interface ClientStore {

@@ -2,7 +2,7 @@
 'use client';
 
 import { collection, doc, getDocs, updateDoc, query, where, getCountFromServer, Timestamp, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 
 export type Testimonial = {
   id?: string;

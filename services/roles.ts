@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, getDocs, doc, setDoc, query, orderBy, Timestamp, addDoc, updateDoc, deleteDoc, writeBatch, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { Permission, Module, defaultPermissions } from '@/lib/permissions';
 
 export type Permissions = {

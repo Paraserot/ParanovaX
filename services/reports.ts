@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import type { DateRange } from "react-day-picker";
 
 type LoginActivityParams = {

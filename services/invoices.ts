@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, where, getDoc, setDoc, runTransaction } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import type { Client } from './clients';
 
 export interface InvoiceItem {

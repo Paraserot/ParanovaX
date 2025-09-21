@@ -23,7 +23,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { auth, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebaseClient";
 import { recordLoginActivity } from "@/services/users";
 import { AnimatedAuthIllustration } from "@/components/animated-auth-illustration";
 import { BrandLogo } from "@/components/brand-logo";

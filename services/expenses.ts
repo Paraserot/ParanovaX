@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, getDocs, query, orderBy, Timestamp, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 
 export type Expense = {
   id?: string;

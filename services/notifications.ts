@@ -2,7 +2,7 @@
 'use server';
 
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, where, writeBatch } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { AdminUser } from './users';
 import { Role } from './roles';
 

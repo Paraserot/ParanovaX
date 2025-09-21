@@ -11,12 +11,13 @@ export type ClientType = {
   createdAt?: string;
 };
 
-const clientTypesCollection = collection(db, 'clientTypes');
-const clientsCollection = collection(db, 'clients');
+
+
 
 // Create
-export async function addClientType(clientTypeData: Omit<ClientType, 'id' | 'createdAt'>) {
+export async function addClientType(clientTypeData: ClientType) {
   try {
+    const clientTypesCollection = collection(db, 'clientTypes');
     const docRef = await addDoc(clientTypesCollection, {
       ...clientTypeData,
       createdAt: Timestamp.now(),
@@ -39,10 +40,12 @@ export async function updateClientType(id: string, updates: Partial<ClientType>)
   }
 }
 
+
 // Delete
 export async function deleteClientType(id: string, name: string) {
   try {
     // Validation: Check if the client type is in use
+    const clientsCollection = collection(db, 'clients');
     const usageQuery = query(clientsCollection, where('clientType', '==', name));
     const snapshot = await getCountFromServer(usageQuery);
     

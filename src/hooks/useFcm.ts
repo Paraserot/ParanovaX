@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { onMessage } from 'firebase/messaging';
-import { messaging } from '@/lib/firebase';
+import { messaging } from '@/lib/firebaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from './useAuth';
 

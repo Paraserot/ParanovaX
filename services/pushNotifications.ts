@@ -2,7 +2,7 @@
 'use server';
 
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 
 export type PushNotification = {
     id?: string;

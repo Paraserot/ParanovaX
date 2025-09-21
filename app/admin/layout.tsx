@@ -22,7 +22,7 @@ import { Preloader } from '@/components/preloader';
 import { useAuth } from '@/hooks/useAuth';
 import { PageSkeleton } from '@/components/page-skeleton';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { useUserStore } from '@/store/slices/useUserStore';
 import { useRoleStore } from '@/store/slices/useRoleStore';
 

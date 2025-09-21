@@ -2,7 +2,7 @@
 "use client";
 
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 import { APP_VERSION } from '@/lib/app-version';
 
 export type AppConfig = {

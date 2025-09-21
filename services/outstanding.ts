@@ -2,7 +2,7 @@
 "use client";
 
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebaseClient';
 
 export type Outstanding = {
   id?: string;
