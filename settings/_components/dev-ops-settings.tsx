@@ -15,54 +15,51 @@ export function DevOpsSettings() {
     const { hasPermission, permissionsLoading } = useAuth();
     const canExecute = hasPermission('devops', 'execute');
 
-    const handleClearCache = async () => {
+    const handleClearCache = () => {
         setIsClearing(true);
-        
         toast({
             title: 'Clearing Cache...',
             description: 'Attempting to clear all browser caches and service workers.',
         });
 
-        try {
-            // 1. Clear Service Workers cache
-            if ('caches' in window) {
-                const cacheNames = await caches.keys();
-                for (const name of cacheNames) {
-                    await caches.delete(name);
+        requestIdleCallback(async () => {
+            try {
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (const name of cacheNames) {
+                        await caches.delete(name);
+                    }
                 }
-            }
 
-            // 2. Clear LocalStorage & SessionStorage
-            localStorage.clear();
-            sessionStorage.clear();
+                localStorage.clear();
+                sessionStorage.clear();
 
-            // 3. Clear all registered Service Workers
-            if ("serviceWorker" in navigator) {
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                for (const reg of registrations) {
-                    await reg.unregister();
+                if ("serviceWorker" in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const reg of registrations) {
+                        await reg.unregister();
+                    }
                 }
+                
+                toast({
+                    title: 'Cache Cleared Successfully!',
+                    description: 'The application will now perform a hard reload.',
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                setIsClearing(false);
+                window.location.href = window.location.href;
+
+            } catch (error: any) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Error Clearing Cache',
+                    description: error.message || 'Could not clear all caches. Please try clearing your browser data manually.',
+                });
+                setIsClearing(false);
             }
-            
-            toast({
-                title: 'Cache Cleared Successfully!',
-                description: 'The application will now perform a hard reload.',
-            });
-
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            setIsClearing(false);
-            // 4. Force reload by re-assigning href
-            window.location.href = window.location.href;
-
-        } catch (error: any) {
-            toast({
-                variant: 'destructive',
-                title: 'Error Clearing Cache',
-                description: error.message || 'Could not clear all caches. Please try clearing your browser data manually.',
-            });
-            setIsClearing(false);
-        }
+        });
     };
     
     if (permissionsLoading) {
@@ -83,7 +80,7 @@ export function DevOpsSettings() {
     
     if (!canExecute) {
         return (
-             <Card className="border-amber-500/50">
+             <Card className="border-amber-500/50 interactive-card">
                 <CardHeader>
                     <CardTitle>Permissions Required</CardTitle>
                     <CardDescription>
@@ -96,12 +93,12 @@ export function DevOpsSettings() {
     
     return (
         <div className="space-y-6">
-            <Card className="border-destructive/50">
+            <Card className="border-destructive/50 interactive-card">
                 <CardHeader>
                     <CardTitle>Hard Clear Browser Cache</CardTitle>
                     <CardDescription>
                         This will forcefully clear all application data from your browser including caches, local storage, and service workers, then reload the page. Use this if you are not seeing the latest deployed changes.
-                    </CardDescription>
+                    </CradDescription>
                 </CardHeader>
                 <CardContent>
                      <Button variant="destructive" onClick={handleClearCache} disabled={isClearing}>

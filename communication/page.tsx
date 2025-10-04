@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, lazy } from "react";
 import {
   Card,
   CardContent,
@@ -16,9 +16,9 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { PageSkeleton } from "@/components/page-skeleton";
-import { PushNotificationForm } from "./_components/push-notification-form";
-import { BannerInfoForm } from "./_components/banner-info-form";
 
+const PushNotificationForm = lazy(() => import('./_components/push-notification-form').then(module => ({ default: module.PushNotificationForm })));
+const BannerInfoForm = lazy(() => import('./_components/banner-info-form').then(module => ({ default: module.BannerInfoForm })));
 
 export default function CommunicationPage() {
     const [formKey, setFormKey] = useState(Date.now());
